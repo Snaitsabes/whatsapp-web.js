@@ -1,35 +1,30 @@
-'use strict';
+const { Client, LocalAuth } = require('whatsapp-web.js');
+const qrcode = require('qrcode-terminal');
+const axios = require('axios');
 
-const Constants = require('./src/util/Constants');
+const client = new Client({
+    authStrategy: new LocalAuth()
+});
 
-module.exports = {
-    Client: require('./src/Client'),
+client.on('qr', qr => {
+    console.log('QR RECEIVED');
+    qrcode.generate(qr, { small: true });
+});
 
-    version: require('./package.json').version,
+client.on('ready', () => {
+    console.log('Client is ready!');
+});
 
-    // Structures
-    Chat: require('./src/structures/Chat'),
-    PrivateChat: require('./src/structures/PrivateChat'),
-    GroupChat: require('./src/structures/GroupChat'),
-    Channel: require('./src/structures/Channel'),
-    Message: require('./src/structures/Message'),
-    MessageMedia: require('./src/structures/MessageMedia'),
-    Contact: require('./src/structures/Contact'),
-    PrivateContact: require('./src/structures/PrivateContact'),
-    BusinessContact: require('./src/structures/BusinessContact'),
-    ClientInfo: require('./src/structures/ClientInfo'),
-    Location: require('./src/structures/Location'),
-    Poll: require('./src/structures/Poll'),
-    ScheduledEvent: require('./src/structures/ScheduledEvent'),
-    ProductMetadata: require('./src/structures/ProductMetadata'),
-    List: require('./src/structures/List'),
-    Buttons: require('./src/structures/Buttons'),
-    Broadcast: require('./src/structures/Broadcast'),
+// 👇 AQUÍ ESCUCHAMOS MENSAJES
+client.on('message', async message => {
+    const chat = await message.getChat();
 
-    // Auth Strategies
-    NoAuth: require('./src/authStrategies/NoAuth'),
-    LocalAuth: require('./src/authStrategies/LocalAuth'),
-    RemoteAuth: require('./src/authStrategies/RemoteAuth'),
+    // ⚠️ FILTRO: solo grupos
+    if (chat.isGroup) {
+        console.log(`Mensaje en grupo: ${chat.name} - ${message.body}`);
 
-    ...Constants,
-};
+        // 👇 AQUÍ DESPUÉS VA n8n (por ahora solo log)
+    }
+});
+
+client.initialize();
